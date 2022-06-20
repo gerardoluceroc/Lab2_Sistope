@@ -2,6 +2,7 @@
 #include <stdlib.h> //Asignación de memoria, atoi, etc.
 #include <string.h>
 #include <unistd.h> //para getopt 
+#include <pthread.h> //para hebras
 #include "funciones_lab2.c"
 
 
@@ -14,10 +15,32 @@ Sección: B2
 */
 
 
+
+void* hola(void* arg){
+
+	
+
+	printf("Hola que tal a todos, recibí un 777\n");
+	//pthread_exit(NULL);
+
+
+
+}
+
+
+//Se define el archivo de entrada global que será compartido por las hebras
+FILE* archivoEntrada;
+//arreglo con los discos correspondientes y su informacion
+disco* arregloDiscos;
+
+
 int main(int argc, char* argv[]){
 
+	//iterador
+	int i;
+
 	//Variables para almacenar lo recibido por teclado
-	char* nombreArchivoEntrada = (char*)malloc(sizeof(char));
+	char* nombreArchivoEntrada;
 	char* nombreArchivoSalida;
 	int cantidadDiscos;
 	int cantidadHebras;
@@ -27,13 +50,14 @@ int main(int argc, char* argv[]){
 
 	//Se llama a la funcion que verifica si la entrada por teclado es correcta
 	int entradaCorrecta = verificarFormato(argv,argc,&nombreArchivoEntrada,&nombreArchivoSalida,&cantidadDiscos, &cantidadHebras, &chunk, &anchoDisco, &flagB);
+
 	//Si la entrada no es correcta
 	if(!entradaCorrecta){
 		//se sale del programa
 		return(1);
 	}
-	printf("AAfAAAAAAAAAAAAAAAAAAAAAA\n");
 
+	//BORRAR
 	printf("nombreArchivoEntrada = %s\n",nombreArchivoEntrada);
 	printf("nombreArchivoSalida = %s\n",nombreArchivoSalida);
 	printf("Valor de cantidadDiscos = %d\n",cantidadDiscos);
@@ -42,82 +66,43 @@ int main(int argc, char* argv[]){
 	printf("Valor de anchoDisco = %d\n",anchoDisco);
 	printf("Valor de flagB = %d\n",flagB);
 
+	//Se crea el arreglo con los discos correspondientes y su informacion
+	arregloDiscos = crearArregloDiscos(cantidadDiscos);
 
-/*
-
-	//banderas para verificar el formato de entrada de los parametros
-	int flagI = 0;
-	int flagO = 0;
-	int flagN = 0;
-	int flagD = 0;
-	int flagH = 0;
-	int flagC = 0;
-    int flagB = 0; //booleano que indica si se activa la bandera -b
-
-//Variables para almacenar lo recibido por teclado
-	char* nombreArchivoEntrada;
-	char* nombreArchivoSalida;
-	char* numeroDiscos;
-	char* numeroHebras;
-	char* chunk_char;
-	char* ancho;
-	int c;
-
-	//ciclo para obtener los parametros ingresados por teclado
-	while((c = getopt(argc, argv, "i:o:d:n:h:c:b")) != -1){
-		switch(c){
-        	case 'i':
-                nombreArchivoEntrada = optarg;
-                //se levanta la bandera de i
-                flagI = 1;
-                break;
-            case 'o':
-                nombreArchivoSalida = optarg;
-                //se levanta la bandera de o
-                flagO = 1;
-                break;
-            case 'n':
-                numeroDiscos = optarg;
-                //se levanta la bandera de n
-                flagN = 1;
-                break;    
-            case 'd':
-                ancho = optarg;
-                //se levanta la bandera de d
-                flagD = 1;
-                 break;
-            case 'h':
-                numeroHebras = optarg;
-                //se levanta la bandera de d
-                flagH = 1;
-                 break;
-            case 'c':
-                chunk_char = optarg;
-                //se levanta la bandera de d
-                flagC = 1;
-                 break;     
-            case 'b':
-                flagB = 1;
-                break;
-            default:
-                printf("Error en el formato de entrada\nEjemplo:./lab2 -i archivoeEntrada.csv -o ArchivoSalida.txt -d ancho -n cantidadDiscos -h numeroHebras -c chunk -b \n");
-                return 1;
-        }//fin switch
-    }//fin while
-
-    //En caso de que alguna bandera no esté levantada quiere decir que el formato de entrada es incorrecto, por lo que se indica por pantalla y se termina el programa
-    if(!(flagD && flagI && flagN && flagO && flagH && flagC)){
-
-    	printf("Error en el formato de entrada\nEjemplo:./lab2 -i archivoeEntrada.csv -o ArchivoSalida.txt -d ancho -n cantidadDiscos -h numeroHebras -c chunk -b \n");
-    	return(1);
+	//BORRAR
+	for(int i=0;i<cantidadDiscos;i++){
+		printf("soy el disco con id %d\n",arregloDiscos[i].id_disco);
+	}
 
 
-    }//fin if flag d,i,n,o,h,c
+	//Se abre el archivo de entrada
+	archivoEntrada = fopen(nombreArchivoEntrada, "r");
+
+	//se crea un arreglo con los id de las hebras a crear
+	pthread_t arregloHebras[cantidadHebras];
+
+	int number = 3;//BORRAR
+
+	//Se crean las hebras
+	for(i = 0;i<cantidadHebras;i++){
+
+		pthread_create(&arregloHebras[i], NULL, hola,NULL);
+
+	}//fin for create hebras
+
+	//se esperan a las hebras creadas
+	for(i=0;i<cantidadHebras;i++){
+
+		pthread_join(arregloHebras[i],NULL);
+
+	}//fin for join hebras
 
 
-    printf("TUDU BEN\n");
 
-*/
+	//pthread_t tid;
+	//int number = 3;
+	//pthread_create(&tid, NULL, hola,&number);
+	//pthread_join(tid,NULL);
 
 
 
@@ -126,9 +111,11 @@ int main(int argc, char* argv[]){
 
 
 
+ 
+ 	free(arregloDiscos);
+ 	//free(arregloHebras);//BORRAR ya que ahora uso arreglo estatico
 
-
-
+	fclose(archivoEntrada);
 	return(0);
 
 
