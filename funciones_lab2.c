@@ -191,3 +191,50 @@ disco* crearArregloDiscos(int cantidadDiscos){
     return(arregloDiscos);
 }//fin crearArregloDiscos
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Funcion que libera la memoria utilizada por una matriz de char
+
+//Entrada:matriz de char, cantidad de filas de la matriz
+void liberarMatrizChar(char** matrizChar, int cantidadFilas){
+
+    //iterador
+    int i;
+
+    //mientras queden filas en la matriz sin liberar
+    for(i = cantidadFilas-1; i>=0;i--){
+
+        //se libera la fila correspondiente
+        free(matrizChar[i]);
+
+    }//fin for
+
+}//fin liberarMatrizChar
