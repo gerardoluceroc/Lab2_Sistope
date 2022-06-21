@@ -588,3 +588,104 @@ float* cadenaAFlotantes(char cadena[]){
 
     
 }//Fin cadenaAFlotantes
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Funcion que calcula la potencia de un array de flotantes.
+//Esta función será utilizada para calcular la potencia de las visibilidades obtenidas por el proceso hijo
+
+//Entrada: Array de numeros flotantes
+//Salida: potencia del array de elementos
+float calcularPotencia(float* valorReal,float* valorImaginario, int cantidadElementos){
+
+    //iterador
+    int i = 0;
+
+    //variable donde se guardará el resultado final
+    float resultadoFinal = 0.0;
+
+    float resultadoParcial;
+
+    //mientras queden valores por sumar
+    while(i<cantidadElementos){
+
+        //Se calcula el termino i de la sumatoria
+        resultadoParcial = sqrtf((valorReal[i] * valorReal[i]) + (valorImaginario[i] * valorImaginario[i]));
+
+        //se suma el valor al resultado
+        resultadoFinal = resultadoFinal + resultadoParcial;
+        i = i+1;
+
+    }//fin while
+
+    //se retorna el resultado
+    return(resultadoFinal);
+
+}//Fin funcion sumatoria
+

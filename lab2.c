@@ -153,6 +153,46 @@ void* hebra(void* arg){
         		arregloFlotantes = cadenaAFlotantes(matrizStrings[i]);
 
 
+        		/////////////////////////////////// ENTER SECCIÓN CRÍTICA ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        		//Se toma el mutex ya que aqui se escribirá y modificará el arreglo de estructuras disco, compartido por todas las hebras
+        		pthread_mutex_lock(&mutex);
+
+
+        		//Se proceden a escribir los valores del arreglo flotantes en el disco al cual pertenecen
+
+        		//Primero, se aumenta el largo de los arreglos con la ayuda de la funcion realloc
+        		arregloDiscos[discoElegido].ejeU = (float*)realloc(arregloDiscos[discoElegido].ejeU, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
+        		arregloDiscos[discoElegido].ejeV = (float*)realloc(arregloDiscos[discoElegido].ejeV, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
+        		arregloDiscos[discoElegido].valorReal = (float*)realloc(arregloDiscos[discoElegido].valorReal, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
+        		arregloDiscos[discoElegido].valorImaginario = (float*)realloc(arregloDiscos[discoElegido].valorImaginario, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
+        		arregloDiscos[discoElegido].ruido = (float*)realloc(arregloDiscos[discoElegido].ruido, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
+
+        		int visibilidadesActuales = arregloDiscos[discoElegido].cantidadVisibilidades;
+
+        		//Se escriben los valores de la visibilidad y se aumenta en 1 el contador de visibilidades que contiene la estructura
+        		arregloDiscos[discoElegido].ejeU[visibilidadesActuales] = arregloFlotantes[POSICION_U];
+        		arregloDiscos[discoElegido].ejeV[visibilidadesActuales] = arregloFlotantes[POSICION_V];
+        		arregloDiscos[discoElegido].valorReal[visibilidadesActuales] = arregloFlotantes[VALOR_REAL];
+        		arregloDiscos[discoElegido].valorImaginario[visibilidadesActuales] = arregloFlotantes[VALOR_IM];
+        		arregloDiscos[discoElegido].ruido[visibilidadesActuales] = arregloFlotantes[RUIDO];
+        		arregloDiscos[discoElegido].cantidadVisibilidades = arregloDiscos[discoElegido].cantidadVisibilidades + 1;
+
+        		//Se libera el mutex
+        		pthread_mutex_unlock(&mutex);
+        		////////////////////////////////// EXIT SECCIÓN CRÍTICA ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+        		//BORRAR
+        	/*	printf("arreglo de flotantes\n");
+        		printf("eje u: %f\n",arregloFlotantes[POSICION_U]);
+        		printf("eje v: %f\n",arregloFlotantes[POSICION_V]);
+        		printf("valor real: %f\n",arregloFlotantes[VALOR_REAL]);
+        		printf("valor imaginario: %f\n",arregloFlotantes[VALOR_IM]);
+        		printf("ruido: %f\n\n\n",arregloFlotantes[RUIDO]); 
+        	*/
+
+
 
 
 			}//fin if matrizStrings[i] != ""
@@ -239,6 +279,10 @@ int main(int argc, char* argv[]){
 	}//fin for join hebras
 
 
+	//BORRAR(PROBANDO)
+	//SE CALCULA LA POTENCIA
+	float potencia = calcularPotencia(arregloDiscos[1].valorReal, arregloDiscos[1].valorImaginario, arregloDiscos[1].cantidadVisibilidades);
+	printf("La potencia del disco 1 es %f\n",potencia);
 
 	//pthread_t tid;
 	//int number = 3;
