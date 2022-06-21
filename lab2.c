@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h> //para getopt 
 #include <pthread.h> //para hebras
+#include <string.h> 
 #include <sys/types.h>
 #include "funciones_lab2.c"
 
@@ -16,6 +17,11 @@ Sección: B2
 */
 
 #define LIMITE_CADENA 300
+#define POSICION_U 0
+#define POSICION_V 1
+#define VALOR_REAL 2
+#define VALOR_IM 3
+#define RUIDO 4
 
 
 
@@ -72,7 +78,18 @@ void* hebra(void* arg){
 
 	int i; //iterador
 
+	//arreglo estatico donde se guardará momentaneamente la linea leída del archivo
 	char cadenaLeida[LIMITE_CADENA]; 
+	char copiaCadenaLeida[LIMITE_CADENA];
+
+	//entero que indicará el disco al que pertenece la visibilidad evaluada
+	int discoElegido;
+
+	//Arreglo de flotantes donde irán los datos de la visibilidad evaluada
+	float* arregloFlotantes;
+
+	//Variable para guardar la distancia de la visibilidad al origen
+	float distancia;
 
 	//Se crea una matriz de strings para guardar las lineas leídas del archivo de entrada
 	char matrizStrings[chunk][LIMITE_CADENA];
@@ -105,8 +122,46 @@ void* hebra(void* arg){
 		}//fin for chunk
 		//Se libera el mutex
 		pthread_mutex_unlock(&mutex);
-		
+
   		////////////////////////////////EXIT SECCION CRITICA////////////////////////////////////////////////////////////////////////
+
+
+
+		//Para cada linea de string leída
+		for(i=0;i<chunk;i++){
+
+			//Si lo que hay en el arreglo no es un caracter vacío
+			if(strcmp(matrizStrings[i],"") != 0){
+
+				//Para manipular la cadena leída, se pretende realizar split con la funcion strtok
+        		//pero esta funcion modifica el arreglo, por lo que para evitar problemas se hará una copia del arreglo
+        		strcpy(copiaCadenaLeida,matrizStrings[i]);
+
+        		//printf("La copia de la cadena es %s\n",copiaCadenaLeida);//BORRAR
+
+        		//Se calcula la distancia de la visibilidad al origen
+        		distancia = calcularDistancia(copiaCadenaLeida);
+
+        		//printf("La distancia es %f\n",distancia);//BORRAR
+
+        		//Se obtiene el disco al que pertenece la visibilidad de acuerdo a su distancia
+        		discoElegido = asignarDisco(anchoDisco,cantidadDiscos,distancia);
+
+        		printf("La visibilidad %f pertenece al disco %d\n",distancia,discoElegido);//BORRAR
+
+        		//Se fragmenta la cadena con la visibilidad leída y se guardan sus datos en un arreglo de flotantes
+        		arregloFlotantes = cadenaAFlotantes(matrizStrings[i]);
+
+
+
+
+			}//fin if matrizStrings[i] != ""
+
+
+
+		}//fin for cada lidea de string leída
+
+
 
 
 
@@ -114,6 +169,9 @@ void* hebra(void* arg){
 
 
 	}//fin while feof
+
+	//Se libera la memoria utilizada
+	free(arregloFlotantes);
 
 
 }//fin hebra
@@ -195,7 +253,7 @@ int main(int argc, char* argv[]){
 
 
  
- 	free(arregloDiscos);
+ 	liberarArregloDiscos(cantidadDiscos,arregloDiscos);
  	//free(arregloHebras);//BORRAR ya que ahora uso arreglo estatico
 
 	fclose(archivoEntrada);

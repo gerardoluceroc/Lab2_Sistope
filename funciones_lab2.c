@@ -2,6 +2,7 @@
 #include <stdlib.h> //Asignación de memoria, atoi, etc.
 #include <string.h>
 #include <unistd.h> //para getopt 
+#include <math.h> //para funciones como sqrt()
 #include <pthread.h> //para hebras
 
 
@@ -181,9 +182,14 @@ disco* crearArregloDiscos(int cantidadDiscos){
 
     for(i = 0;i<cantidadDiscos;i++){
 
-        //se inicializan los valores
+        //se inicializan los valores y se pide el espacio en memoria para los arreglos
         arregloDiscos[i].cantidadVisibilidades = 0;
         arregloDiscos[i].id_disco = i;
+        arregloDiscos[i].ejeU = (float*)malloc(sizeof(float));
+        arregloDiscos[i].ejeV = (float*)malloc(sizeof(float));
+        arregloDiscos[i].valorReal = (float*)malloc(sizeof(float));
+        arregloDiscos[i].valorImaginario = (float*)malloc(sizeof(float));
+        arregloDiscos[i].ruido = (float*)malloc(sizeof(float));
 
     }//fin for
 
@@ -221,20 +227,364 @@ disco* crearArregloDiscos(int cantidadDiscos){
 
 
 
-//Funcion que libera la memoria utilizada por una matriz de char
+//Funcion que libera la memoria utilizada por el arreglo de discos
+//Entrada: cantidad de discos del arreglo
+void liberarArregloDiscos(int cantidadDiscos, disco* arregloDiscos){
 
-//Entrada:matriz de char, cantidad de filas de la matriz
-void liberarMatrizChar(char** matrizChar, int cantidadFilas){
-
-    //iterador
     int i;
+    for(i=0;i<cantidadDiscos;i++){
 
-    //mientras queden filas en la matriz sin liberar
-    for(i = cantidadFilas-1; i>=0;i--){
+        //Se libera la memoria utilizada por los arreglos que contiene la estructura
+        free(arregloDiscos[i].ejeU);
+        free(arregloDiscos[i].ejeV);
+        free(arregloDiscos[i].valorReal);
+        free(arregloDiscos[i].valorImaginario);
+        free(arregloDiscos[i].ruido);
 
-        //se libera la fila correspondiente
-        free(matrizChar[i]);
 
-    }//fin for
+    }
 
-}//fin liberarMatrizChar
+    //finalmente, se libera el arreglo
+    free(arregloDiscos);
+
+
+
+}//fin liberarArregloDiscos
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Función que recibe la cadena de caracteres perteneciente a una linea del archivo de entrad
+//Y a traves de esta cadena, obtiene la distancia de la visibilidad (coordenadas (u,v)) al origen
+//Entrada: Cadena de caracteres
+//Salida: Distancia de la coordenada u,v al origen
+float calcularDistancia(char cadena[]){
+
+    //variables para guardar los valores de las coordenadas
+    float coordenadaU;
+    float coordenadaV;
+
+    //se realiza un primer split para obtener la coordenada U en forma de char*
+    char* coordenadaUChar = strtok(cadena, ",");
+
+    //se obtiene ahora la coordenada V en forma de char*
+    char* cadenaRestante = strtok(NULL, " ");
+    char* coordenadaVChar = strtok(cadenaRestante, ",");
+
+    //se obtiene las coordenas u y v como flotantes con la funcion strtok
+    coordenadaU = strtof(coordenadaUChar,NULL);
+    coordenadaV = strtof(coordenadaVChar,NULL);
+
+    //se procede a calcular la distancia
+    float argumentoRaiz = ((coordenadaU * coordenadaU) + (coordenadaV * coordenadaV));
+
+    //Se calcula la raiz cuadrada
+    float resultado = sqrtf(argumentoRaiz);
+
+    //Finalmente, se retornan el resultado obtenido
+    return(resultado);
+
+
+}//fin calcularDistancia
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Funcion que toma la distancia de la visibilidad al origen y evalúa a que disco pertenece la visibilidad de acuerdo al ancho del mismo
+//Entrada: ancho de disco, cantidad de discos que tendrá el programa, distancia de la visibilidad al origen
+//Salida: entero que indica a que posicion del arreglo de la estructura disco pertenece la visibilidad
+int asignarDisco(int anchoDisco, int cantidadDiscos ,float distancia){
+
+    //Variable para ir comparando con la distancia
+    int rangoDisco = anchoDisco;
+
+    //Disco al que pertenece la visibilidad
+    int discoElegido = 0;
+
+    //mientras se evalua la visibilidad
+    while(discoElegido<cantidadDiscos){
+
+        //Si la distancia es menor que la cota superior del disco, entonces pertenece a ese disco, y se retorna
+        if(distancia < rangoDisco){
+
+            return(discoElegido);
+        }
+
+        else{
+
+            //sino se sigue evaluando para el siguiente disco
+            discoElegido = discoElegido + 1;
+            rangoDisco = rangoDisco + anchoDisco;
+        }//fin else
+
+    }//fin while
+
+    //Se retorna el resultado
+    return((discoElegido-1));
+
+
+}//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Funcion que toma una cadena y la transforma en una array dinamico de enteros.
+//Esta función lo que hará es recibir la cadena leída por fgets y la transformará
+//En un arreglo de 5 enteros con la información de la visibilidad observada.
+
+//Entrada: Cadena de caracteres la cual será evaluada
+//Salida:arreglo de flotantes con los datos de la visibilidad recibida
+
+float* cadenaAFlotantes(char cadena[]){
+
+    //se guarda la cantidad de parametros que tiene la visibilidad, para este caso son 5
+    int cantidadParametros = 5;
+
+    //Se pide el espacio en memoria
+    float* arraySalida = (float*)malloc(sizeof(float)*cantidadParametros);
+
+    //variables para guardar los valores en sus respectivas posiciones
+    int const_posicionU = 0;
+    int const_posicionV = 1;
+    int const_valorReal = 2;
+    int const_valorImaginario = 3;
+    int const_ruido = 4;
+
+    //valores para guardar los valores flotantes
+
+    float posicionU;
+    float posicionV;
+    float valorReal;
+    float valorImaginario;
+    float ruido;
+
+    //Variable para guardar el valor flotante obtenido de la visibilidad pero en version char
+    char* charLeido;
+
+    //Variable para guardar el valor flotante obtenido de la visibilidad 
+    char flotanteLeido;
+
+    //Variable para guardar lo que queda de cadena de caracteres luego de aplicar la funcion strtok
+    char* cadenaRestante;
+
+    //Este proceso se realizará 5 veces con su respectiva variable
+
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadena, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    posicionU = strtof(charLeido,NULL);
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    posicionV = strtof(charLeido,NULL);
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    valorReal = strtof(charLeido,NULL);
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    valorImaginario = strtof(charLeido,NULL);
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    ruido = strtof(charLeido,NULL);
+
+
+    //Se guardan los valores leidos en el array
+    arraySalida[const_posicionU] = posicionU;
+    arraySalida[const_posicionV] = posicionV;
+    arraySalida[const_valorReal] = valorReal;
+    arraySalida[const_valorImaginario] = valorImaginario;
+    arraySalida[const_ruido] = ruido;
+
+    //Se retorna el array
+    return(arraySalida);
+
+    
+}//Fin cadenaAFlotantes
