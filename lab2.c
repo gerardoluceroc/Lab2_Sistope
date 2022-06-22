@@ -46,6 +46,8 @@ int anchoDisco;
 //Mutex para proteger las secciones criticas
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+
 
 
 
@@ -86,6 +88,7 @@ void* hebra(void* arg){
 		//se leen las lineas
 		//Se toma el mutex ya que en este ciclo la hebra lee el archivo de entrada
 		pthread_mutex_lock(&mutex);
+		printf("Entre a la sección critica de lectura de archivo\n");
 		for(i=0;i<chunk;i++){
 			//si se está al final del archivo, se detiene el ciclo
 			if(feof(archivoEntrada) != 0){break;}
@@ -96,6 +99,8 @@ void* hebra(void* arg){
 			strcpy(matrizStrings[i], cadenaLeida);
 
 		}//fin for chunk
+
+		printf("A punto de salir de la SC de lectura de archivo\n");
 		//Se libera el mutex
 		pthread_mutex_unlock(&mutex);
 
@@ -123,7 +128,7 @@ void* hebra(void* arg){
         		//Se obtiene el disco al que pertenece la visibilidad de acuerdo a su distancia
         		discoElegido = asignarDisco(anchoDisco,cantidadDiscos,distancia);
 
-        		printf("La distancia %f pertenece al disco %d\n",distancia,discoElegido);//BORRAR
+        		//printf("La distancia %f pertenece al disco %d\n",distancia,discoElegido);//BORRAR
 
         		//Se fragmenta la cadena con la visibilidad leída y se guardan sus datos en un arreglo de flotantes
         		arregloFlotantes = cadenaAFlotantes(matrizStrings[i]);
@@ -131,9 +136,9 @@ void* hebra(void* arg){
 
         		/////////////////////////////////// ENTER SECCIÓN CRÍTICA ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         		//Se toma el mutex ya que aqui se escribirá y modificará el arreglo de estructuras disco, compartido por todas las hebras
-        		pthread_mutex_lock(&mutex);
+        		pthread_mutex_lock(&mutex2);
 
-
+        		printf("Entre a la sección critica de mutex 2\n");
         		//Se proceden a escribir los valores del arreglo flotantes en el disco al cual pertenecen
 
         		//Primero, se aumenta el largo de los arreglos con la ayuda de la funcion realloc
@@ -153,8 +158,9 @@ void* hebra(void* arg){
         		arregloDiscos[discoElegido].ruido[visibilidadesActuales] = arregloFlotantes[RUIDO];
         		arregloDiscos[discoElegido].cantidadVisibilidades = arregloDiscos[discoElegido].cantidadVisibilidades + 1;
 
+        		printf("estoy por salir de la seccion critica de mutex2\n");
         		//Se libera el mutex
-        		pthread_mutex_unlock(&mutex);
+        		pthread_mutex_unlock(&mutex2);
         		////////////////////////////////// EXIT SECCIÓN CRÍTICA ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 			}//fin if matrizStrings[i] != ""
