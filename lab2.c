@@ -123,7 +123,7 @@ void* hebra(void* arg){
         		//Se obtiene el disco al que pertenece la visibilidad de acuerdo a su distancia
         		discoElegido = asignarDisco(anchoDisco,cantidadDiscos,distancia);
 
-        		printf("La visibilidad %f pertenece al disco %d\n",distancia,discoElegido);//BORRAR
+        		printf("La distancia %f pertenece al disco %d\n",distancia,discoElegido);//BORRAR
 
         		//Se fragmenta la cadena con la visibilidad leída y se guardan sus datos en un arreglo de flotantes
         		arregloFlotantes = cadenaAFlotantes(matrizStrings[i]);
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]){
 	//Se crea o abre el archivo de salida en modo escritura
 	FILE* archivoSalida = fopen(nombreArchivoSalida, "w");
 
-	//Se escribe en el archivo
+	//Se escribe en el archivo de salida
 	fprintf(archivoSalida,"%s\n%d discos, ancho %d\n\n",nombreArchivoEntrada,cantidadDiscos,anchoDisco);
 
 	//por cada disco
@@ -244,10 +244,33 @@ int main(int argc, char* argv[]){
 	}//fin for disco
 
 
-	printf("\nLa media real del disco 1 es %f\n",mediaReal);
-	printf("La media imaginaria del disco 1 es %f\n",mediaImeginaria);
-	printf("La potencia del disco 1 es %f\n",potencia);
-	printf("El ruido total del dico 1 es %f\n",ruidoTotal);
+
+
+
+
+	//si la bandera b está levantada
+	if(flagB){
+
+		//Se escriben los resultados por pantalla
+		printf("%s\n%d discos, ancho %d\n\n",nombreArchivoEntrada,cantidadDiscos,anchoDisco);
+
+		//por cada disco
+		for(i=0;i<cantidadDiscos;i++){
+
+			//Se obtienen sus propiedades de acuerdo a las visibilidades que contiene
+			mediaReal = calcularPromedio(arregloDiscos[i].valorReal, arregloDiscos[i].cantidadVisibilidades);
+			mediaImeginaria = calcularPromedio(arregloDiscos[i].valorImaginario, arregloDiscos[i].cantidadVisibilidades);
+			ruidoTotal = sumatoria(arregloDiscos[i].ruido, arregloDiscos[i].cantidadVisibilidades);
+			potencia = calcularPotencia(arregloDiscos[i].valorReal, arregloDiscos[i].valorImaginario, arregloDiscos[i].cantidadVisibilidades);
+
+			//Se escriben los resultados por pantalla
+			printf("Disco %d:\nMedia real: %f\nMedia imaginaria: %f\nPotencia: %f\nRuido total: %f\n",arregloDiscos[i].id_disco+1,mediaReal,mediaImeginaria,potencia,ruidoTotal);
+
+		}//fin for disco
+
+
+	}//fin if flagB
+
 
 
 

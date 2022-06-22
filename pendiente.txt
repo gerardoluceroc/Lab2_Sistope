@@ -1,2 +1,5 @@
 - El archivo de las funciones debe ser .h
 - aveces al ejecutar se provoca violacion de segmento, propablemente sea algun deadlock o algo asi. Lo raro es que si se busca el error con valgrind el programa ya no hace violación de segmento.
+- si se activa la bandera b, ¿se deben escribir los resultados en el archivo de salida tambien?
+- el calculo de la media real y demas ¿lo hace la hebra hija o la hebra madre?
+- hacer makefile
