@@ -1,1 +1,2 @@
 - El archivo de las funciones debe ser .h
+- aveces al ejecutar se provoca violacion de segmento, propablemente sea algun deadlock o algo asi. Lo raro es que si se busca el error con valgrind el programa ya no hace violación de segmento.

@@ -49,30 +49,6 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //Funcion perteneciente a la hebras hijas que se van a ejecutar en el programa
 void* hebra(void* arg){
 
@@ -181,39 +157,14 @@ void* hebra(void* arg){
         		pthread_mutex_unlock(&mutex);
         		////////////////////////////////// EXIT SECCIÓN CRÍTICA ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-        		//BORRAR
-        	/*	printf("arreglo de flotantes\n");
-        		printf("eje u: %f\n",arregloFlotantes[POSICION_U]);
-        		printf("eje v: %f\n",arregloFlotantes[POSICION_V]);
-        		printf("valor real: %f\n",arregloFlotantes[VALOR_REAL]);
-        		printf("valor imaginario: %f\n",arregloFlotantes[VALOR_IM]);
-        		printf("ruido: %f\n\n\n",arregloFlotantes[RUIDO]); 
-        	*/
-
-
-
-
 			}//fin if matrizStrings[i] != ""
 
-
-
 		}//fin for cada lidea de string leída
-
-
-
-
-
-
-
 
 	}//fin while feof
 
 	//Se libera la memoria utilizada
 	free(arregloFlotantes);
-
-
 }//fin hebra
 
 
@@ -239,23 +190,8 @@ int main(int argc, char* argv[]){
 		return(1);
 	}
 
-	//BORRAR
-	printf("nombreArchivoEntrada = %s\n",nombreArchivoEntrada);
-	printf("nombreArchivoSalida = %s\n",nombreArchivoSalida);
-	printf("Valor de cantidadDiscos = %d\n",cantidadDiscos);
-	printf("Valor de cantidadHebras = %d\n",cantidadHebras);
-	printf("Valor de chunk = %d\n",chunk);
-	printf("Valor de anchoDisco = %d\n",anchoDisco);
-	printf("Valor de flagB = %d\n",flagB);
-
 	//Se crea el arreglo con los discos correspondientes y su informacion
 	arregloDiscos = crearArregloDiscos(cantidadDiscos);
-
-	//BORRAR
-	for(int i=0;i<cantidadDiscos;i++){
-		printf("soy el disco con id %d\n",arregloDiscos[i].id_disco);
-	}
-
 
 	//Se abre el archivo de entrada
 	archivoEntrada = fopen(nombreArchivoEntrada, "r");
@@ -279,20 +215,39 @@ int main(int argc, char* argv[]){
 	}//fin for join hebras
 
 
-	//BORRAR(PROBANDO)
-	//SE CALCULA LA POTENCIA
-	float potencia = calcularPotencia(arregloDiscos[1].valorReal, arregloDiscos[1].valorImaginario, arregloDiscos[1].cantidadVisibilidades);
+
+
+	//Variables donde se guardarán las propiedades de cada disco para escribirlas en el archivo de salida
+	float potencia;
+	float ruidoTotal;
+	float mediaReal;
+	float mediaImeginaria;
+
+	//Se crea o abre el archivo de salida en modo escritura
+	FILE* archivoSalida = fopen(nombreArchivoSalida, "w");
+
+	//Se escribe en el archivo
+	fprintf(archivoSalida,"%s\n%d discos, ancho %d\n\n",nombreArchivoEntrada,cantidadDiscos,anchoDisco);
+
+	//por cada disco
+	for(i=0;i<cantidadDiscos;i++){
+
+		//Se obtienen sus propiedades de acuerdo a las visibilidades que contiene
+		mediaReal = calcularPromedio(arregloDiscos[i].valorReal, arregloDiscos[i].cantidadVisibilidades);
+		mediaImeginaria = calcularPromedio(arregloDiscos[i].valorImaginario, arregloDiscos[i].cantidadVisibilidades);
+		ruidoTotal = sumatoria(arregloDiscos[i].ruido, arregloDiscos[i].cantidadVisibilidades);
+		potencia = calcularPotencia(arregloDiscos[i].valorReal, arregloDiscos[i].valorImaginario, arregloDiscos[i].cantidadVisibilidades);
+
+		//Se escriben los resultados en el archivo de salida
+		fprintf(archivoSalida,"Disco %d:\nMedia real: %f\nMedia imaginaria: %f\nPotencia: %f\nRuido total: %f\n",arregloDiscos[i].id_disco+1,mediaReal,mediaImeginaria,potencia,ruidoTotal);
+
+	}//fin for disco
+
+
+	printf("\nLa media real del disco 1 es %f\n",mediaReal);
+	printf("La media imaginaria del disco 1 es %f\n",mediaImeginaria);
 	printf("La potencia del disco 1 es %f\n",potencia);
-
-	//pthread_t tid;
-	//int number = 3;
-	//pthread_create(&tid, NULL, hola,&number);
-	//pthread_join(tid,NULL);
-
-
-
-
-
+	printf("El ruido total del dico 1 es %f\n",ruidoTotal);
 
 
 
@@ -301,6 +256,7 @@ int main(int argc, char* argv[]){
  	//free(arregloHebras);//BORRAR ya que ahora uso arreglo estatico
 
 	fclose(archivoEntrada);
+	fclose(archivoSalida);
 	return(0);
 
 

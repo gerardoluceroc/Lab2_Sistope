@@ -10,7 +10,6 @@
 
 
 
-
 //Se declara la estructura disco, donde se guardará la informacion de las visibilidades pertenecientes a ese disco
 typedef struct disco{
 
@@ -385,6 +384,9 @@ float calcularDistancia(char cadena[]){
 
 
 
+
+
+
 //Funcion que toma la distancia de la visibilidad al origen y evalúa a que disco pertenece la visibilidad de acuerdo al ancho del mismo
 //Entrada: ancho de disco, cantidad de discos que tendrá el programa, distancia de la visibilidad al origen
 //Salida: entero que indica a que posicion del arreglo de la estructura disco pertenece la visibilidad
@@ -687,5 +689,324 @@ float calcularPotencia(float* valorReal,float* valorImaginario, int cantidadElem
     //se retorna el resultado
     return(resultadoFinal);
 
+}//Fin funcion calcularPotencia
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Funcion que calcula la sumatoria de los elementos de un array de flotantes.
+//Esta función será utilizada para calcular el ruido total de las visibilidades obtenidas por el proceso hijo
+
+//Entrada: Array de numeros flotantes
+//Salida: sumatoria del total de numeros que componen el array
+float sumatoria(float* arrayElementos, int cantidadElementos){
+
+    //iterador
+    int i = 0;
+
+    //variable donde se guardará el resultado final
+    float resultado = 0.0;
+
+    //mientras queden valores por sumar
+    while(i<cantidadElementos){
+
+
+        //se suma el valor al resultado
+        resultado = resultado + arrayElementos[i];
+        i = i+1;
+
+    }//fin while
+
+
+    //se retorna el resultado
+    return(resultado);
+
 }//Fin funcion sumatoria
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Funcion que calcula el promedio simple de los elementos de un array de flotantes.
+//Esta función será utilizada para calcular la media imaginaria y real de las visibilidades obtenidas por el proceso hijo.
+
+//Entrada: Array de numeros flotantes
+//Salida: promedio simple del total de numeros que componen el array
+float calcularPromedio(float* arrayElementos, int cantidadElementos){
+
+    //iterador
+    int i = 0;
+
+    //variable donde se guardará el resultado final
+    float resultado = 0.0;
+
+    //mientras queden valores por sumar
+    while(i<cantidadElementos){
+
+        //se suma el valor al resultado
+        resultado = resultado + arrayElementos[i];
+        i = i+1;
+
+    }//fin while
+
+    //Se calcula el promedio simple
+    resultado = (resultado/(cantidadElementos+0.0));
+
+    //se retorna el resultado
+    return(resultado);
+
+}//Fin funcion calcular promedio
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
