@@ -61,6 +61,7 @@ int anchoDisco;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex3 = PTHREAD_MUTEX_INITIALIZER;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -93,7 +94,7 @@ void* hebra(void* arg);
 //Funcion perteneciente a la hebras hijas que se van a ejecutar en el programa
 void* hebra(void* arg){
 
-    //BORRAR?)
+    //Variables donde se guardarán los valores de las visibilidades evaluadas
     int whileEjecutando = 1;
     float posU;
     float posV;
@@ -125,8 +126,6 @@ void* hebra(void* arg){
     //Mientras no se llegue al final del archivo
     while(whileEjecutando){
 
-        printf("Soy la hebra %d y empezaré el while\n",gettid());
-
         //Se inicializan los valores de la matriz con caracter vacío para identificar aquellas filas que tengan strings y las que no
         for(i=0;i<chunk;i++){
             strcpy(matrizStrings[i], "");
@@ -137,10 +136,13 @@ void* hebra(void* arg){
         //se leen las lineas
         //Se toma el mutex ya que en este ciclo la hebra lee el archivo de entrada
         pthread_mutex_lock(&mutex);
-        printf("soy la hebra %d y Entre a la sección critica de lectura de archivo\n",gettid());
         for(i=0;i<chunk;i++){
             //si se está al final del archivo, se detiene el ciclo
-            if(feof(archivoEntrada) != 0){break;}
+            if(feof(archivoEntrada) != 0){
+
+                whileEjecutando = 0;
+                break;
+            }
 
 
             //Se lee la cadena y se guarda en la matriz de strings
@@ -149,7 +151,6 @@ void* hebra(void* arg){
 
         }//fin for chunk
 
-        printf("soy la hebra %d y A punto de salir de la SC de lectura de archivo\n",gettid());
         //Se libera el mutex
         pthread_mutex_unlock(&mutex);
 
@@ -159,36 +160,38 @@ void* hebra(void* arg){
 
         //Para cada linea de string leída
         for(i=0;i<chunk;i++){
-            printf("Soy la hebra %d y entre al for para las chunk lineas\n",gettid());
-
             //Si lo que hay en el arreglo no es un caracter vacío
             if(strcmp(matrizStrings[i],"") != 0){
 
-                printf("soy la hebra %d y entre al if de que no es vacio\n",gettid());
-
+            
                 //Para manipular la cadena leída, se pretende realizar split con la funcion strtok
                 //pero esta funcion modifica el arreglo, por lo que para evitar problemas se hará una copia del arreglo
                 strcpy(copiaCadenaLeida,matrizStrings[i]);
-                printf("Soy la hebra %d y ya esta copiada la cadena a su clon\n",gettid());
 
-                //printf("La copia de la cadena es %s\n",copiaCadenaLeida);//BORRAR
+                /////////////////////////////////////////Enter mini sección critica//////////////////////////////////////////////////////////////
+
+                //Por razones desconocidas, el programa en algunas ocasiones no se termina debido a que provoca violación de segmento.
+                //Luego de intentart indagar el problema con diferentes estrategias, no se pudo encontrar el origen del problema,
+                //Sin embargo, se sabe que este problema, de concurrencia lo mas probable, se genera en alguna de estas 3 funciones
+                //o mientras las hebras ejecutan estas funciones. Por lo que para evitar que esto sucede se decidió asignar una pequeña sección critica
+                //que involucra el uso de estas 3 funciones, y así evitar el segmention fault y que solo una hebra a la vez haga uso de estas funciones.
+                //Para esto, se asigna un mutex que en este caso es llamado mutex3.
+                pthread_mutex_lock(&mutex3);
 
                 //Se calcula la distancia de la visibilidad al origen
                 distancia = calcularDistancia(copiaCadenaLeida);
-                printf("Soy la hebra %d y calculé la distancia\n",gettid());
-
-                //printf("La distancia es %f\n",distancia);//BORRAR
 
                 //Se obtiene el disco al que pertenece la visibilidad de acuerdo a su distancia
                 discoElegido = asignarDisco(anchoDisco,cantidadDiscos,distancia);
-                printf("Soy la hebra %d y disco asignado\n",gettid());
 
-                //printf("La distancia %f pertenece al disco %d\n",distancia,discoElegido);//BORRAR
-
-                //Se fragmenta la cadena con la visibilidad leída y se guardan sus datos en un arreglo de flotantes
-                //arregloFlotantes = cadenaAFlotantes(matrizStrings[i]);
+                
+                //Se fragmenta la cadena con la visibilidad leída y se guardan sus datos en las variables
                 cadenaAFlotantes(matrizStrings[i],&posU,&posV,&valorR,&valorIm,&Ruido);
-                printf("Soy la hebra %d y cadena transformada a flotantes\n",gettid());
+
+                //una vez usada las funciones, se libera el mutex.
+                pthread_mutex_unlock(&mutex3);
+                ///////////////////////////////////////Exit mini sección critica/////////////////////////////////////////////////////////////////////
+
 
 
 
@@ -197,8 +200,7 @@ void* hebra(void* arg){
                 //Se toma el mutex ya que aqui se escribirá y modificará el arreglo de estructuras disco, compartido por todas las hebras
                 pthread_mutex_lock(&mutex2);
 
-                printf("Soy la hebra %d Entre a la sección critica de mutex 2\n",gettid());
-                //Se proceden a escribir los valores del arreglo flotantes en el disco al cual pertenecen
+                //Se proceden a escribir los valores de las variables en el disco al cual pertenecen
 
                 //Primero, se aumenta el largo de los arreglos con la ayuda de la funcion realloc
                 arregloDiscos[discoElegido].ejeU = (float*)realloc(arregloDiscos[discoElegido].ejeU, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
@@ -206,18 +208,8 @@ void* hebra(void* arg){
                 arregloDiscos[discoElegido].valorReal = (float*)realloc(arregloDiscos[discoElegido].valorReal, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
                 arregloDiscos[discoElegido].valorImaginario = (float*)realloc(arregloDiscos[discoElegido].valorImaginario, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
                 arregloDiscos[discoElegido].ruido = (float*)realloc(arregloDiscos[discoElegido].ruido, sizeof(float)*((arregloDiscos[discoElegido].cantidadVisibilidades)+1));
-                printf("Soy la hebra %d y realloc listo\n",gettid());
 
                 int visibilidadesActuales = arregloDiscos[discoElegido].cantidadVisibilidades;
-
-                //Se escriben los valores de la visibilidad y se aumenta en 1 el contador de visibilidades que contiene la estructura
-            /*  arregloDiscos[discoElegido].ejeU[visibilidadesActuales] = arregloFlotantes[POSICION_U];
-                arregloDiscos[discoElegido].ejeV[visibilidadesActuales] = arregloFlotantes[POSICION_V];
-                arregloDiscos[discoElegido].valorReal[visibilidadesActuales] = arregloFlotantes[VALOR_REAL];
-                arregloDiscos[discoElegido].valorImaginario[visibilidadesActuales] = arregloFlotantes[VALOR_IM];
-                arregloDiscos[discoElegido].ruido[visibilidadesActuales] = arregloFlotantes[RUIDO];
-                arregloDiscos[discoElegido].cantidadVisibilidades = arregloDiscos[discoElegido].cantidadVisibilidades + 1;
-            */
 
                 arregloDiscos[discoElegido].ejeU[visibilidadesActuales] = posU;
                 arregloDiscos[discoElegido].ejeV[visibilidadesActuales] = posV;
@@ -225,26 +217,19 @@ void* hebra(void* arg){
                 arregloDiscos[discoElegido].valorImaginario[visibilidadesActuales] = valorIm;
                 arregloDiscos[discoElegido].ruido[visibilidadesActuales] = Ruido;
                 arregloDiscos[discoElegido].cantidadVisibilidades = arregloDiscos[discoElegido].cantidadVisibilidades + 1;
-                printf("Soy la hebra %d y estoy por salir de la seccion critica de mutex2\n",gettid());
+
                 //Se libera el mutex
                 pthread_mutex_unlock(&mutex2);
                 ////////////////////////////////// EXIT SECCIÓN CRÍTICA ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             }//fin if matrizStrings[i] != ""
 
+
         }//fin for cada lidea de string leída
 
-        //BORRAR?) HACIENDO MUTEX DE LA LECTURA DE ARCHIVO ANTES DE SEGUIR EL WHILE
-        printf("Soy la hebra %d y voy a comprobar si llegue al final del archivo\n",gettid());
-        pthread_mutex_lock(&mutex);
-        printf("soy la hebra %d y entre al mutex pa comprobar el final del archivo\n",gettid());
-        if(feof(archivoEntrada) != 0){whileEjecutando = 0;}
-        pthread_mutex_unlock(&mutex);
-
+        
     }//fin while feof
 
-    //Se libera la memoria utilizada
-    //free(arregloFlotantes);
 }//fin hebra
 
 
@@ -895,7 +880,7 @@ float calcularPromedio(float* arrayElementos, int cantidadElementos){
 //Entrada: Cadena de caracteres la cual será evaluada, punteros a las variables donde guardar los resultados
 void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, float* valorIm, float* Ruido){
 
-    printf("Soy la hebra %d y antes de empezar con cadenaAFlotantes2 la cadena recibida es %s\n",gettid(),cadena);
+    //printf("Soy la hebra %d y antes de empezar con cadenaAFlotantes2 la cadena recibida es %s\n",gettid(),cadena);
 
     //se guarda la cantidad de parametros que tiene la visibilidad, para este caso son 5
     int cantidadParametros = 5;
@@ -918,9 +903,7 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     char* cadenaRestante;
 
     //Este proceso se realizará 5 veces con su respectiva variable
-    printf("sOy la hebra %d y estoy en cadenaAFlotantes2 y ya definí variables, y sus direcciones son:\ncharLeido: %p\ncadenaRestante: %p\npos U: %p\npos V: %p\nvalor R: %p\nvalor Im: %p\nruido: %p\n", gettid(),charLeido,cadenaRestante,posU,posV,valorR,valorIm,Ruido);
-
-
+    //printf("sOy la hebra %d y estoy en cadenaAFlotantes2 y ya definí variables, y sus direcciones son:\ncharLeido: %p\ncadenaRestante: %p\npos U: %p\npos V: %p\nvalor R: %p\nvalor Im: %p\nruido: %p\n", gettid(),charLeido,cadenaRestante,posU,posV,valorR,valorIm,Ruido);
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
     charLeido = strtok(cadena, ",");
@@ -928,7 +911,7 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *posU = strtof(charLeido,NULL);
-    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posU\n", gettid());
+    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posU\n", gettid());
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
     charLeido = strtok(cadenaRestante, ",");
@@ -936,7 +919,7 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *posV = strtof(charLeido,NULL);
-    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posV\n", gettid());
+    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posV\n", gettid());
 
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
@@ -945,7 +928,7 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *valorR = strtof(charLeido,NULL);
-    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorR\n", gettid());
+    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorR\n", gettid());
 
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
@@ -954,7 +937,7 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *valorIm = strtof(charLeido,NULL);
-    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorIm\n", gettid());
+    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorIm\n", gettid());
 
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
@@ -963,7 +946,7 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *Ruido = strtof(charLeido,NULL);
-    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo Ruido\n", gettid());
+    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo Ruido\n", gettid());
     //pthread_mutex_unlock(&mutex4);
     
 }//Fin cadenaAFlotantes
