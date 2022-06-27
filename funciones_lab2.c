@@ -4,82 +4,8 @@
 #include <unistd.h> //para getopt 
 #include <math.h> //para funciones como sqrt()
 #include <pthread.h> //para hebras
+#include "cabeceras.h" 
 
-
-
-//Se declara la estructura disco, donde se guardará la informacion de las visibilidades pertenecientes a ese disco
-typedef struct disco{
-
-    int cantidadVisibilidades;//cantidad de visibilidades que tiene guardardada la estructura en ese momento
-    int id_disco;//id del disco, esto depende de la cantidad de discos que se requieran, valor que es ingresado por teclado
-    float* ejeU;//arreglo donde irán los ejes U de las observaciones pertenecientes al disco
-    float* ejeV;//arreglo donde irán los ejes V de las observaciones pertenecientes al disco
-    float* valorReal;//arreglo donde los valores reales de las observaciones pertenecientes al disco
-    float* valorImaginario;//arreglo donde irán los valores imaginarios de las observaciones pertenecientes al disco
-    float* ruido;//arreglo donde irán los ruidos de las observaciones pertenecientes al disco
-
-    //cabe mencionar que el dato completo de una observacion específica coincide con:
-    //ejeU[i],ejeV[i],valorReal[i],valorImaginario[i],ruido[i]
-
-}disco;
-
-////////////////////////////////////////////////DEFINICIÓN DE CONSTANTES//////////////////////////////////////////////////////
-
-#define LIMITE_CADENA 100
-#define POSICION_U 0
-#define POSICION_V 1
-#define VALOR_REAL 2
-#define VALOR_IM 3
-#define RUIDO 4
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-////////////////////////////////DEFINICIÓN DE VARIABLES GLOBALES//////////////////////////////////////////////////////////////
-//Variables globales que serán compartidas por las hebras
-
-
-//Se define el archivo de entrada global que será compartido por las hebras
-FILE* archivoEntrada;
-//arreglo con los discos correspondientes y su informacion
-disco* arregloDiscos;
-//string con el nombre del archivo de entrada
-char* nombreArchivoEntrada;
-//entero con la cantidad de discos 
-int cantidadDiscos;
-//entero con el valor de chunk
-int chunk;
-//Entero con la cantidad de hebras
-int cantidadHebras;
-//Entero con el ancho de los discos
-int anchoDisco;
-
-//Mutex para proteger las secciones criticas
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
-pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutex3 = PTHREAD_MUTEX_INITIALIZER;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-///////////////////DECLARACIÓN DE FUNCIONES////////////////////////
-int verificarFormato(char* argv[],int argc,char** nombreArchivoEntrada,char** nombreArchivoSalida,int* cantidadDiscos,int* cantidadHebras, int* chunk,int* anchoDisco, int* flagB);
-disco* crearArregloDiscos(int cantidadDiscos);
-void liberarArregloDiscos(int cantidadDiscos, disco* arregloDiscos);
-float calcularDistancia(char cadena[]);
-int asignarDisco(int anchoDisco, int cantidadDiscos ,float distancia);
-float calcularPotencia(float* valorReal,float* valorImaginario, int cantidadElementos);
-float sumatoria(float* arrayElementos, int cantidadElementos);
-float calcularPromedio(float* arrayElementos, int cantidadElementos);
-void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, float* valorIm, float* Ruido);
-void* hebra(void* arg);
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -171,10 +97,10 @@ void* hebra(void* arg){
                 /////////////////////////////////////////Enter mini sección critica//////////////////////////////////////////////////////////////
 
                 //Por razones desconocidas, el programa en algunas ocasiones no se termina debido a que provoca violación de segmento.
-                //Luego de intentart indagar el problema con diferentes estrategias, no se pudo encontrar el origen del problema,
-                //Sin embargo, se sabe que este problema, de concurrencia lo mas probable, se genera en alguna de estas 3 funciones
-                //o mientras las hebras ejecutan estas funciones. Por lo que para evitar que esto sucede se decidió asignar una pequeña sección critica
-                //que involucra el uso de estas 3 funciones, y así evitar el segmention fault y que solo una hebra a la vez haga uso de estas funciones.
+                //Luego de intentar indagar el problema con diferentes estrategias, no se pudo encontrar su origen,
+                //Sin embargo, se sabe que este problema (de concurrencia lo mas probable) se genera en alguna de estas 3 funciones
+                //o mientras las hebras ejecutan estas funciones. Por lo que para evitar que esto suceda se decidió asignar una pequeña sección critica
+                //que involucra el uso de estas 3 funciones, y así evitar el segmentation fault y que solo una hebra a la vez haga uso de estas funciones.
                 //Para esto, se asigna un mutex que en este caso es llamado mutex3.
                 pthread_mutex_lock(&mutex3);
 
@@ -903,7 +829,7 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     char* cadenaRestante;
 
     //Este proceso se realizará 5 veces con su respectiva variable
-    //printf("sOy la hebra %d y estoy en cadenaAFlotantes2 y ya definí variables, y sus direcciones son:\ncharLeido: %p\ncadenaRestante: %p\npos U: %p\npos V: %p\nvalor R: %p\nvalor Im: %p\nruido: %p\n", gettid(),charLeido,cadenaRestante,posU,posV,valorR,valorIm,Ruido);
+  
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
     charLeido = strtok(cadena, ",");
@@ -911,7 +837,6 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *posU = strtof(charLeido,NULL);
-    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posU\n", gettid());
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
     charLeido = strtok(cadenaRestante, ",");
@@ -919,7 +844,6 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *posV = strtof(charLeido,NULL);
-    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posV\n", gettid());
 
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
@@ -928,7 +852,6 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *valorR = strtof(charLeido,NULL);
-    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorR\n", gettid());
 
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
@@ -937,7 +860,6 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *valorIm = strtof(charLeido,NULL);
-    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorIm\n", gettid());
 
 
     //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
@@ -946,8 +868,6 @@ void cadenaAFlotantes(char cadena[], float* posU, float* posV, float* valorR, fl
     cadenaRestante = strtok(NULL," ");
     //Se transforma el valor a flotante y se guarda en su variable respectiva
     *Ruido = strtof(charLeido,NULL);
-    //printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo Ruido\n", gettid());
-    //pthread_mutex_unlock(&mutex4);
     
 }//Fin cadenaAFlotantes
 
