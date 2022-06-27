@@ -1,23 +1,13 @@
-test10000.csv
-4 discos, ancho 100
+test100.csv
+2 discos, ancho 200
 
 Disco 1:
-Media real: 0.263560
-Media imaginaria: 0.003283
-Potencia: 465.052490
-Ruido total: 27679.085938
+Media real: 0.192737
+Media imaginaria: -0.203437
+Potencia: 5.655540
+Ruido total: 229.623810
 Disco 2:
-Media real: 0.099328
-Media imaginaria: -0.001867
-Potencia: 1106.411865
-Ruido total: 71377.000000
-Disco 3:
-Media real: 0.048616
-Media imaginaria: -0.000568
-Potencia: 965.091248
-Ruido total: 55751.054688
-Disco 4:
-Media real: 0.016811
-Media imaginaria: -0.000856
-Potencia: 987.135071
-Ruido total: 44155.457031
+Media real: 0.002717
+Media imaginaria: -0.008388
+Potencia: 35.028774
+Ruido total: 1307.824951

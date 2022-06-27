@@ -6,7 +6,7 @@
 #include <pthread.h> //para hebras
 
 
-
+pthread_mutex_t mutex4 = PTHREAD_MUTEX_INITIALIZER;
 
 
 
@@ -867,6 +867,267 @@ float calcularPromedio(float* arrayElementos, int cantidadElementos){
 
 }//Fin funcion calcular promedio
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void cadenaAFlotantes2(char cadena[], float* posU, float* posV, float* valorR, float* valorIm, float* Ruido){
+
+    printf("Soy la hebra %d y antes de empezar con cadenaAFlotantes2 la cadena recibida es %s\n",gettid(),cadena);
+
+    //se guarda la cantidad de parametros que tiene la visibilidad, para este caso son 5
+    int cantidadParametros = 5;
+
+    //Se pide el espacio en memoria
+    //float* arraySalida = (float*)malloc(sizeof(float)*cantidadParametros);
+
+    //variables para guardar los valores en sus respectivas posiciones
+    int const_posicionU = 0;
+    int const_posicionV = 1;
+    int const_valorReal = 2;
+    int const_valorImaginario = 3;
+    int const_ruido = 4;
+
+    //valores para guardar los valores flotantes
+
+    float posicionU;
+    float posicionV;
+    float valorReal;
+    float valorImaginario;
+    float ruido;
+
+    //Variable para guardar el valor flotante obtenido de la visibilidad pero en version char
+    char* charLeido;
+
+    //Variable para guardar el valor flotante obtenido de la visibilidad 
+    char flotanteLeido;
+
+    //Variable para guardar lo que queda de cadena de caracteres luego de aplicar la funcion strtok
+    char* cadenaRestante;
+
+    //Este proceso se realizará 5 veces con su respectiva variable
+    printf("sOy la hebra %d y estoy en cadenaAFlotantes2 y ya definí variables, y sus direcciones son:\ncharLeido: %p\ncadenaRestante: %p\npos U: %p\npos V: %p\nvalor R: %p\nvalor Im: %p\nruido: %p\n", gettid(),charLeido,cadenaRestante,posU,posV,valorR,valorIm,Ruido);
+
+    
+//////////////////////////////////// ORIGINAAAAALLLLLLLLLL ///////////////////////////////////////////////////////////////////////////////////////
+    //pthread_mutex_lock(&mutex4);
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadena, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    *posU = strtof(charLeido,NULL);
+    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posU\n", gettid());
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    *posV = strtof(charLeido,NULL);
+    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo posV\n", gettid());
+
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    *valorR = strtof(charLeido,NULL);
+    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorR\n", gettid());
+
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    *valorIm = strtof(charLeido,NULL);
+    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo valorIm\n", gettid());
+
+
+    //Se realiza split de la cadena para obtener un valor, para esto se utiliza la funcion strtok
+    charLeido = strtok(cadenaRestante, ",");
+    //Se guarda lo que queda de cadena
+    cadenaRestante = strtok(NULL," ");
+    //Se transforma el valor a flotante y se guarda en su variable respectiva
+    *Ruido = strtof(charLeido,NULL);
+    printf("soy la hebra %d y estoy en cadenaAFlotantes2 y ya tengo Ruido\n", gettid());
+    //pthread_mutex_unlock(&mutex4);
+/////////////////////////////////////////////////// FIN ORIGINAL //////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+    //Se guardan los valores leidos en el array
+    arraySalida[const_posicionU] = posicionU;
+    arraySalida[const_posicionV] = posicionV;
+    arraySalida[const_valorReal] = valorReal;
+    arraySalida[const_valorImaginario] = valorImaginario;
+    arraySalida[const_ruido] = ruido;
+
+    //Se retorna el array
+    return(arraySalida);
+*/
+    
+}//Fin cadenaAFlotantes
 
 
 
